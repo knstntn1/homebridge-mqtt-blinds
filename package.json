@@ -19,8 +19,8 @@
     "url": "git+https://github.com/bonze4/homebridge-mqtt-blinds"
   },
   "author": "Tim Faltin",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
-    "request": "^2.74.0"
+    "mqtt": "^1.12.0"
   }
 }
