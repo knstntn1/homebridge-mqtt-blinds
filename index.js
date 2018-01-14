@@ -1,5 +1,3 @@
-'use strict';
-
 var mqtt = require("mqtt");
 var Service, Characteristic;
 
@@ -21,13 +19,16 @@ function BlindsMQTTAccessory(log, config) {
   	this.serialNumberMAC = config['serialNumberMAC'] || "";
 
     // MQTT vars
-    this.mqttUrl = config["url"];
-    this.mqttUsername = config["username"];
-    this.mqttPassword = config["stop_url"];
-    this.mqttTopic = config["topic"];
+    this.mqttUrl = config["mqttBrokerUrl"];
+    this.mqttUsername = config["mqttUsername"];
+    this.mqttPassword = config["mqttPassword"];
     this.mqttClientId = 'mqttjs_' + Math.random().toString(16).substr(2, 8);
 
-    // mqtt options
+    this.mqttMainTopic = config["mqttMainTopic"]+"/";
+    this.mqttGetTopics = config["mqttGetTopics"];
+    this.mqttSetTopics = config["mqttSetTopics"];
+
+    // MQTT options
     this.mqttOptions = {
       keepalive: 10,
       clientId: this.mqttClientId,
@@ -47,12 +48,12 @@ function BlindsMQTTAccessory(log, config) {
       rejectUnauthorized: false
     };
 
-    // state vars
+    // STATE vars
     this.lastPosition = 100; // last known position of the blinds, open by default
     this.currentPositionState = 2; // stopped by default
     this.currentTargetPosition = 100; // open by default
 
-    // mqtt handling
+    // MQTT handling
     this.mqttClient = mqtt.connect(this.mqttUrl, this.mqttOptions);
     var that = this;
   	this.mqttClient.on('error', function() {
@@ -60,25 +61,42 @@ function BlindsMQTTAccessory(log, config) {
   	});
 
   	this.mqttClient.on('connect', function() {
-      that.log('MQTT is running ');
+      that.log('MQTT is running');
   	});
 
     this.mqttClient.on('message', function(topic, message) {
       switch (topic) {
-        case this.mqttTopic + "/GET/currentPosition":
-          this.lastPosition = Number(messsage);
+        case that.mqttMainTopic + that.mqttGetTopics.currentPosition:
+          var payload = parseInt(message);
+          if (payload >= 0 && payload <= 100) {
+            that.lastPosition = payload;
+            that.service.getCharacteristic(Characteristic.CurrentPosition).setValue(that.lastPosition);
+            that.log("Updated CurrentPosition: %s", that.lastPosition);
+          }
           break;
-        case this.mqttTopic + "/GET/positionState":
-          this.currentPositionState = Number(messsage);
+        case that.mqttMainTopic + that.mqttGetTopics.positionState:
+          var payload = parseInt(message);
+          if (payload >= 0 && payload <= 2) {
+            that.currentPositionState = parseInt(message);
+            that.service.getCharacteristic(Characteristic.PositionState).setValue(that.currentPositionState);
+            that.log("Updated PositonState: %s", that.currentPositionState);
+          }
           break;
-        case this.mqttTopic + "/GET/targetPosition":
-          this.currentTargetPosition = Number(messsage);
+        case that.mqttMainTopic + that.mqttGetTopics.targetPosition:
+          var payload = parseInt(message);
+          if (payload >= 0 && payload <= 100) {
+            that.currentTargetPosition = parseInt(message);
+            that.service.getCharacteristic(Characteristic.TargetPosition).setValue(that.currentTargetPosition);
+            that.log("Updated TargetPosition: %s", that.currentTargetPosition);
+          }
           break;
       }
     });
 
-    // MQTT SUBSCRBE
-    this.mqttClient.subscribe(this.topicsStateGet);
+    // MQTT subscribed
+    this.mqttClient.subscribe(that.mqttMainTopic + that.mqttGetTopics.currentPosition);
+    this.mqttClient.subscribe(that.mqttMainTopic + that.mqttGetTopics.positionState);
+    this.mqttClient.subscribe(that.mqttMainTopic + that.mqttGetTopics.targetPosition);
 
     // register the service and provide the functions
     this.service = new Service.WindowCovering(this.name);
@@ -88,8 +106,7 @@ function BlindsMQTTAccessory(log, config) {
         .getCharacteristic(Characteristic.CurrentPosition)
         .on('get', this.getCurrentPosition.bind(this));
 
-    // the position state
-    // 0 = DECREASING; 1 = INCREASING; 2 = STOPPED
+    // the position state (0 = DECREASING, 1 = INCREASING, 2 = STOPPED)
     this.service
         .getCharacteristic(Characteristic.PositionState)
         .on('get', this.getPositionState.bind(this));
@@ -119,7 +136,7 @@ BlindsMQTTAccessory.prototype.getTargetPosition = function(callback) {
 BlindsMQTTAccessory.prototype.setTargetPosition = function(pos, callback) {
     this.log("Set TargetPosition: %s", pos);
     this.currentTargetPosition = pos;
-    this.mqttClient.publish(this.mqttTopic + "/SET/targetPosition", pos.toString(), this.mqttOptions);
+    this.mqttClient.publish(this.mqttMainTopic + this.mqttSetTopics.targetPosition, pos.toString(), this.mqttOptions);
     callback(null);
 }
 
