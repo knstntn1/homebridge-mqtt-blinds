@@ -1,5 +1,5 @@
 # homebridge-mqtt-blinds
-This is a homebridge plugin to control blinds with mqtt. :sun_with_face::new_moon_with_face:
+This is a homebridge plugin to control blinds via mqtt. :sun_with_face::new_moon_with_face:
 
 ## Installation
 If you are new to Homebridge, please first read the Homebridge [documentation](https://github.com/nfarina/homebridge).
