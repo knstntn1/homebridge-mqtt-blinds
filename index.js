@@ -28,6 +28,12 @@ function BlindsMQTTAccessory(log, config) {
     this.mqttGetTopics = config["mqttGetTopics"];
     this.mqttSetTopics = config["mqttSetTopics"];
 
+    // Array for PositionStateValues (DEC, INC, STOP)
+    this.mqttPositionStateValues = config["mqttPositionStateValues"];
+
+    // manual controls in setup?
+    this.useManualControls = config["useManualControls"];
+
     // MQTT options
     this.mqttOptions = {
       keepalive: 10,
@@ -70,23 +76,50 @@ function BlindsMQTTAccessory(log, config) {
           var payload = parseInt(message);
           if (payload >= 0 && payload <= 100) {
             that.lastPosition = payload;
-            that.service.getCharacteristic(Characteristic.CurrentPosition).setValue(that.lastPosition);
+            that.service.getCharacteristic(Characteristic.CurrentPosition).updateValue(that.lastPosition);
             that.log("Updated CurrentPosition: %s", that.lastPosition);
           }
           break;
         case that.mqttMainTopic + that.mqttGetTopics.positionState:
-          var payload = parseInt(message);
-          if (payload >= 0 && payload <= 2) {
-            that.currentPositionState = parseInt(message);
-            that.service.getCharacteristic(Characteristic.PositionState).setValue(that.currentPositionState);
-            that.log("Updated PositonState: %s", that.currentPositionState);
+          // map the position state (open = 0 = DECREASING, close = 1 = INCREASING, stop = 2 = STOPPED)
+          var payload = message.toString();
+          switch(payload) {
+            case that.mqttPositionStateValues[0]:
+              that.currentPositionState = 0;
+              if(that.useManualControls) {
+                that.currentTargetPosition = 100;   
+                that.service.getCharacteristic(Characteristic.TargetPosition).updateValue(that.currentTargetPosition);
+		            that.log("Simulated TargetPosition: %s", that.currentTargetPosition);
+              }
+              that.service.getCharacteristic(Characteristic.PositionState).updateValue(that.currentPositionState);
+              that.log("Updated PositionState: %s", that.currentPositionState);
+              break;
+            case that.mqttPositionStateValues[1]:
+              that.currentPositionState = 1;
+              if(that.useManualControls) {
+                that.currentTargetPosition = 0;
+                that.service.getCharacteristic(Characteristic.TargetPosition).updateValue(that.currentTargetPosition);
+		            that.log("Simulated TargetPosition: %s", that.currentTargetPosition);
+              }
+              that.service.getCharacteristic(Characteristic.PositionState).updateValue(that.currentPositionState);
+              that.log("Updated PositionState: %s", that.currentPositionState);
+              break;
+            case that.mqttPositionStateValues[2]:
+              that.currentPositionState = 2;
+              that.currentTargetPosition = that.lastPosition;
+              that.service.getCharacteristic(Characteristic.PositionState).updateValue(that.currentPositionState);
+              that.service.getCharacteristic(Characteristic.TargetPosition).updateValue(that.currentTargetPosition);             
+              that.log("Updated PositionState: %s", that.currentPositionState);
+              break;
+            default:
+              that.log("Unknown PositionState: %s", payload);
           }
           break;
         case that.mqttMainTopic + that.mqttGetTopics.targetPosition:
           var payload = parseInt(message);
           if (payload >= 0 && payload <= 100) {
             that.currentTargetPosition = parseInt(message);
-            that.service.getCharacteristic(Characteristic.TargetPosition).setValue(that.currentTargetPosition);
+            that.service.getCharacteristic(Characteristic.TargetPosition).updateValue(that.currentTargetPosition);
             that.log("Updated TargetPosition: %s", that.currentTargetPosition);
           }
           break;

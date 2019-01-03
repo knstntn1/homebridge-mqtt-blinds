@@ -1,6 +1,6 @@
 {
   "name": "homebridge-mqtt-blinds",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A homebridge plugin to control blinds via mqtt",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,10 @@
   },
   "keywords": [
     "homebridge-plugin",
-    "homekit"
+    "homekit",
+    "blinds",
+    "shutters",
+    "shelly2"
   ],
   "engines": {
     "node": ">4.0.0",
@@ -21,6 +24,6 @@
   "author": "Tim Faltin",
   "license": "MIT",
   "dependencies": {
-    "mqtt": "^1.12.0"
+    "mqtt": ">1.12.0"
   }
 }
