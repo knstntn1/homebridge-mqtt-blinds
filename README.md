@@ -65,7 +65,7 @@ sudo npm install homebridge-mqtt-blinds -g
       "mqttBrokerUrl": "mqtt://192.168.0.10:1883",
       "mqttUsername": "username",
       "mqttPassword": "password",
-      "mqttMainTopic": "shellies/shellyswitch-<YOUR_SHELLYID>/roller/",
+      "mqttMainTopic": "shellies/shellyswitch-<YOUR_SHELLYID>/roller",
       "mqttSetTopics": {
         "targetPosition": "0/command/pos"
       },
