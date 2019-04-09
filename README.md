@@ -38,7 +38,7 @@ sudo npm install homebridge-mqtt-blinds -g
         "positionState": "GET/positionState",
         "targetPosition": "GET/targetPosition"
       },
-      "mqttPositionStateValue": ["0", "1", "2"],
+      "mqttPositionStateValues": ["0", "1", "2"],
       "useManualControls": false
     }
     ],
