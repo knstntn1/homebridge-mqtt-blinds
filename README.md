@@ -1,6 +1,7 @@
 # homebridge-mqtt-blinds
 This is a homebridge plugin to control blinds/shutters via mqtt. :sun_with_face::new_moon_with_face:
-It can be used with DIY systems or retrofit solutions like [Shelly2](https://shelly.cloud/shelly2/).
+It can be used with DIY systems or retrofit solutions like [Shelly2](https://shelly.cloud/shelly2/) and 
+[Shelly2.5](https://shelly.cloud/shelly-25-wifi-smart-relay-roller-shutter-home-automation/).
 
 ## Installation
 
@@ -134,4 +135,3 @@ on the topic `myBlind/SET/targetPosition`. The blind should send the current pos
 
 ---------
 Have fun with this plugin. Let me know if you find a issue.
-
